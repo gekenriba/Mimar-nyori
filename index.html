@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wanderlust Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1611;
+    --paper: #f7f3ec;
+    --paper-dark: #ede8de;
+    --sienna: #b5541c;
+    --sienna-light: #f0dfd4;
+    --sage: #4a6741;
+    --sage-light: #dde8d9;
+    --gold: #c8922a;
+    --gold-light: #f5e9d1;
+    --muted: #7a7063;
+    --border: rgba(26,22,17,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── Texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Header ── */
+  header {
+    position: relative;
+    z-index: 1;
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(to bottom, #ede8de 0%, var(--paper) 100%);
+  }
+
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  header h1 em {
+    color: var(--sienna);
+    font-style: italic;
+  }
+
+  .header-subtitle {
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-size: 1rem;
+    font-weight: 300;
+  }
+
+  /* ── Nav tabs ── */
+  nav {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    padding: 0 2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--paper);
+  }
+
+  nav button {
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  nav button:hover { color: var(--ink); }
+
+  nav button.active {
+    color: var(--sienna);
+    border-bottom-color: var(--sienna);
+  }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    padding: 1.25rem 2rem;
+    background: var(--paper-dark);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--sienna);
+  }
+  .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ── Main layout ── */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+  }
+
+  /* ── Upload section ── */
+  .upload-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .upload-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .upload-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .upload-zones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .upload-zone {
+    position: relative;
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--sienna);
+    background: var(--sienna-light);
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .upload-zone h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.25rem;
+  }
+
+  .upload-zone p {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .upload-zone .file-types {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--gold-light);
+    color: var(--gold);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Trip metadata form ── */
+  .add-entry-form {
+    background: var(--paper-dark);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+    display: none;
+  }
+
+  .add-entry-form.visible { display: block; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-field label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+  }
+
+  .form-field input, .form-field textarea, .form-field select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-field input:focus, .form-field textarea:focus, .form-field select:focus {
+    border-color: var(--sienna);
+  }
+
+  .form-field.full { grid-column: 1 / -1; }
+  .form-field textarea { resize: vertical; min-height: 70px; }
+
+  .form-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--sienna);
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: #943f12; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover { background: var(--paper-dark); color: var(--ink); }
+
+  /* ── Gallery toolbar ── */
+  .gallery-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .gallery-toolbar h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-right: auto;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .chip:hover, .chip.active {
+    background: var(--sienna);
+    border-color: var(--sienna);
+    color: #fff;
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 2px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .view-btn {
+    padding: 6px 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 1rem;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+
+  .view-btn.active { background: var(--sienna); color: #fff; }
+
+  /* ── Trip cards (journal entries) ── */
+  #trips-view {
+    display: none;
+  }
+
+  #gallery-view {
+    display: block;
+  }
+
+  /* ── Gallery grid ── */
+  .gallery-grid {
+    columns: 3;
+    column-gap: 1rem;
+  }
+
+  .gallery-grid.two-col { columns: 2; }
+  .gallery-grid.one-col { columns: 1; }
+
+  .media-card {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    background: var(--paper-dark);
+    border: 1px solid var(--border);
+    group: true;
+  }
+
+  .media-card img, .media-card video {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .media-card:hover img, .media-card:hover video {
+    transform: scale(1.02);
+  }
+
+  .media-card .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(26,22,17,0.75) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.25s;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1rem;
+  }
+
+  .media-card:hover .card-overlay { opacity: 1; }
+
+  .card-meta {
+    color: #fff;
+  }
+
+  .card-meta .card-place {
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+
+  .card-meta .card-date {
+    font-size: 0.7rem;
+    opacity: 0.75;
+  }
+
+  .card-type-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(26,22,17,0.65);
+    color: #fff;
+    border-radius: 20px;
+    padding: 3px 8px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+  }
+
+  .card-actions {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .media-card:hover .card-actions { opacity: 1; }
+
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(247,243,236,0.9);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+    color: var(--ink);
+  }
+
+  .icon-btn:hover { background: #fff; }
+
+  /* ── Trip list view ── */
+  .trips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .trip-card {
+    background: var(--paper-dark);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+
+  .trip-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(26,22,17,0.1);
+  }
+
+  .trip-cover {
+    height: 180px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .trip-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .trip-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    background: var(--paper-dark);
+  }
+
+  .trip-info {
+    padding: 1rem 1.25rem;
+  }
+
+  .trip-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .trip-info .trip-location {
+    font-size: 0.8rem;
+    color: var(--sienna);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .trip-info .trip-note {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .trip-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+
+  .empty-state .empty-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+  }
+
+  .empty-state h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--ink);
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state p {
+    font-size: 0.875rem;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  /* ── Lightbox ── */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,22,17,0.92);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .lightbox.open { display: flex; }
+
+  .lightbox-inner {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .lightbox img, .lightbox video {
+    max-width: 70vw;
+    max-height: 80vh;
+    border-radius: 10px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .lightbox-info {
+    color: var(--paper);
+    max-width: 240px;
+  }
+
+  .lightbox-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .lightbox-info .lb-location {
+    font-size: 0.85rem;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .lightbox-info .lb-date {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    margin-bottom: 0.75rem;
+  }
+
+  .lightbox-info .lb-note {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    opacity: 0.8;
+  }
+
+  .lightbox-close {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: rgba(247,243,236,0.15);
+    border: none;
+    color: var(--paper);
+    font-size: 1.4rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .lightbox-close:hover { background: rgba(247,243,236,0.25); }
+
+  .lightbox-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(247,243,236,0.15);
+    border: none;
+    color: var(--paper);
+    font-size: 1.2rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .lightbox-nav:hover { background: rgba(247,243,236,0.25); }
+  .lightbox-nav.prev { left: 1rem; }
+  .lightbox-nav.next { right: 1rem; }
+
+  /* ── Search ── */
+  .search-wrap {
+    position: relative;
+  }
+
+  .search-wrap input {
+    padding: 8px 12px 8px 34px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    background: var(--paper);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    width: 200px;
+  }
+
+  .search-wrap input:focus { border-color: var(--sienna); }
+
+  .search-wrap::before {
+    content: '🔍';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    pointer-events: none;
+  }
+
+  /* ── Map placeholder ── */
+  #map-panel {
+    display: none;
+  }
+
+  .map-placeholder {
+    background: var(--paper-dark);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .map-placeholder h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .locations-list {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .location-chip {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .location-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sienna);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .upload-zones { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .gallery-grid { columns: 2; }
+    .stats-bar { gap: 1.5rem; }
+    nav button { padding: 0.75rem 0.75rem; font-size: 0.8rem; }
+    .lightbox-inner { flex-direction: column; }
+    .lightbox img, .lightbox video { max-width: 90vw; }
+    .lightbox-info { max-width: 90vw; }
+  }
+
+  @media (max-width: 500px) {
+    .gallery-grid { columns: 1; }
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .media-card {
+    animation: fadeIn 0.35s ease both;
+  }
+
+  /* ── Upload progress ── */
+  .progress-bar {
+    height: 3px;
+    background: var(--sienna-light);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+    display: none;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--sienna);
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  /* ── Mood/tags ── */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--sage-light);
+    color: var(--sage);
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="header-eyebrow">✦ Your Personal Travel Archive ✦</p>
+  <h1>Wander<em>lust</em> Journal</h1>
+  <p class="header-subtitle">Photographs, films & stories from the road</p>
+</header>
+
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num" id="stat-photos">0</div>
+    <div class="stat-label">Photos</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="stat-videos">0</div>
+    <div class="stat-label">Videos</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="stat-trips">0</div>
+    <div class="stat-label">Trips</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="stat-places">0</div>
+    <div class="stat-label">Places</div>
+  </div>
+</div>
+
+<nav>
+  <button class="active" onclick="switchTab('gallery')">📸 Gallery</button>
+  <button onclick="switchTab('trips')">🗺️ Trips</button>
+  <button onclick="switchTab('map')">📍 Places</button>
+</nav>
+
+<main>
+
+  <!-- Upload Section -->
+  <div class="upload-section">
+    <div class="upload-header">
+      <h2>Add Memories</h2>
+      <div class="section-line"></div>
+      <button class="btn btn-primary" onclick="toggleForm()">＋ New Trip Entry</button>
+    </div>
+
+    <div class="upload-zones">
+      <!-- Photo Upload -->
+      <div class="upload-zone" id="photo-zone">
+        <input type="file" id="photo-input" accept="image/*" multiple onchange="handlePhotoUpload(event)">
+        <span class="upload-icon">🖼️</span>
+        <h3>Upload Photos</h3>
+        <p>Drag & drop or click to browse</p>
+        <span class="file-types">JPG · PNG · WEBP · HEIC</span>
+        <div class="progress-bar" id="photo-progress">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+
+      <!-- Video Upload -->
+      <div class="upload-zone" id="video-zone">
+        <input type="file" id="video-input" accept="video/*" multiple onchange="handleVideoUpload(event)">
+        <span class="upload-icon">🎬</span>
+        <h3>Upload Videos</h3>
+        <p>Drag & drop or click to browse</p>
+        <span class="file-types">MP4 · MOV · AVI · MKV</span>
+        <div class="progress-bar" id="video-progress">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Trip Entry Form -->
+  <div class="add-entry-form" id="entry-form">
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Trip Title</label>
+        <input type="text" id="f-title" placeholder="e.g. Monsoon in Meghalaya">
+      </div>
+      <div class="form-field">
+        <label>Location / Place</label>
+        <input type="text" id="f-location" placeholder="e.g. Cherrapunji, Assam">
+      </div>
+      <div class="form-field">
+        <label>Date</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="form-field full">
+        <label>Trip Notes / Story</label>
+        <textarea id="f-note" placeholder="Write your memories, feelings, highlights from this journey..."></textarea>
+      </div>
+      <div class="form-field">
+        <label>Mood / Vibe</label>
+        <select id="f-mood">
+          <option value="">Select mood...</option>
+          <option>🌊 Adventurous</option>
+          <option>🌸 Peaceful</option>
+          <option>🎉 Festive</option>
+          <option>🏔️ Rugged</option>
+          <option>🏙️ Urban</option>
+          <option>🌿 Nature</option>
+          <option>🌅 Spiritual</option>
+          <option>😎 Relaxing</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Cover Photo (optional)</label>
+        <input type="file" id="f-cover" accept="image/*">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="toggleForm()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTrip()">Save Trip Entry</button>
+    </div>
+  </div>
+
+  <!-- Gallery Panel -->
+  <div id="gallery-panel">
+    <div class="gallery-toolbar">
+      <h2>All Media</h2>
+      <div class="filter-chips">
+        <button class="chip active" onclick="filterMedia('all', this)">All</button>
+        <button class="chip" onclick="filterMedia('photo', this)">Photos</button>
+        <button class="chip" onclick="filterMedia('video', this)">Videos</button>
+      </div>
+      <div class="search-wrap">
+        <input type="text" id="search-input" placeholder="Search place..." oninput="searchMedia(this.value)">
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" onclick="setColumns(3, this)" title="3 columns">⊞</button>
+        <button class="view-btn" onclick="setColumns(2, this)" title="2 columns">⊟</button>
+        <button class="view-btn" onclick="setColumns(1, this)" title="1 column">☰</button>
+      </div>
+    </div>
+
+    <div class="gallery-grid" id="gallery-grid">
+      <div class="empty-state" id="empty-gallery">
+        <div class="empty-icon">🌍</div>
+        <h3>Your journey starts here</h3>
+        <p>Upload your travel photos and videos above. They'll appear here beautifully arranged.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trips Panel -->
+  <div id="trips-panel" style="display:none;">
+    <div class="gallery-toolbar">
+      <h2>Trip Entries</h2>
+    </div>
+    <div class="trips-grid" id="trips-grid">
+      <div class="empty-state" id="empty-trips">
+        <div class="empty-icon">🗺️</div>
+        <h3>No trips logged yet</h3>
+        <p>Click "New Trip Entry" above to start documenting your travels.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map / Places Panel -->
+  <div id="map-panel" style="display:none;">
+    <div class="map-placeholder">
+      <div style="font-size:3rem; margin-bottom:1rem;">📍</div>
+      <h3>Places Visited</h3>
+      <p>All the unique locations from your trips and uploads appear here.</p>
+      <div class="locations-list" id="locations-list">
+        <div class="empty-state" style="grid-column:1/-1; padding:2rem;">
+          <p>No places yet. Add trip entries with locations to see them here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightboxOutside(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav prev" onclick="navLightbox(-1)">‹</button>
+  <button class="lightbox-nav next" onclick="navLightbox(1)">›</button>
+  <div class="lightbox-inner">
+    <div id="lb-media"></div>
+    <div class="lightbox-info">
+      <h3 id="lb-title">—</h3>
+      <div class="lb-location" id="lb-location"></div>
+      <div class="lb-date" id="lb-date"></div>
+      <div class="lb-note" id="lb-note"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let mediaItems = JSON.parse(localStorage.getItem('wj-media') || '[]');
+let tripEntries = JSON.parse(localStorage.getItem('wj-trips') || '[]');
+let currentFilter = 'all';
+let currentSearch = '';
+let lightboxIndex = 0;
+let pendingFileInfo = {};
+
+/* ── Persistence ── */
+function save() {
+  try {
+    localStorage.setItem('wj-media', JSON.stringify(mediaItems));
+    localStorage.setItem('wj-trips', JSON.stringify(tripEntries));
+  } catch(e) {
+    console.warn('Storage full; items saved in memory only');
+  }
+}
+
+/* ── Tab switching ── */
+function switchTab(tab) {
+  document.querySelectorAll('nav button').forEach((b, i) => {
+    b.classList.toggle('active', ['gallery','trips','map'][i] === tab);
+  });
+  document.getElementById('gallery-panel').style.display = tab === 'gallery' ? 'block' : 'none';
+  document.getElementById('trips-panel').style.display = tab === 'trips' ? 'block' : 'none';
+  document.getElementById('map-panel').style.display = tab === 'map' ? 'block' : 'none';
+}
+
+/* ── Form toggle ── */
+function toggleForm() {
+  const f = document.getElementById('entry-form');
+  f.classList.toggle('visible');
+  if (f.classList.contains('visible')) {
+    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  }
+}
+
+/* ── Save trip ── */
+function saveTrip() {
+  const title = document.getElementById('f-title').value.trim();
+  const location = document.getElementById('f-location').value.trim();
+  const date = document.getElementById('f-date').value;
+  const note = document.getElementById('f-note').value.trim();
+  const mood = document.getElementById('f-mood').value;
+  const coverFile = document.getElementById('f-cover').files[0];
+
+  if (!title) { alert('Please give your trip a title!'); return; }
+
+  const finish = (coverDataUrl) => {
+    const trip = { id: Date.now(), title, location, date, note, mood, cover: coverDataUrl || null, mediaCount: 0 };
+    tripEntries.unshift(trip);
+    save();
+    renderTrips();
+    updateStats();
+    updatePlaces();
+    toggleForm();
+    // Reset form
+    ['f-title','f-location','f-date','f-note'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-mood').value = '';
+    document.getElementById('f-cover').value = '';
+  };
+
+  if (coverFile) {
+    const reader = new FileReader();
+    reader.onload = e => finish(e.target.result);
+    reader.readAsDataURL(coverFile);
+  } else {
+    finish(null);
+  }
+}
+
+/* ── Photo upload ── */
+function handlePhotoUpload(event) {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+  showProgress('photo', true);
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const item = {
+        id: Date.now() + Math.random(),
+        type: 'photo',
+        src: e.target.result,
+        name: file.name,
+        location: '',
+        date: new Date().toISOString().split('T')[0],
+        note: '',
+        trip: null
+      };
+      mediaItems.unshift(item);
+      done++;
+      if (done === files.length) {
+        save();
+        renderGallery();
+        updateStats();
+        showProgress('photo', false);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+}
+
+/* ── Video upload ── */
+function handleVideoUpload(event) {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+  showProgress('video', true);
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const item = {
+        id: Date.now() + Math.random(),
+        type: 'video',
+        src: e.target.result,
+        name: file.name,
+        location: '',
+        date: new Date().toISOString().split('T')[0],
+        note: '',
+        trip: null
+      };
+      mediaItems.unshift(item);
+      done++;
+      if (done === files.length) {
+        save();
+        renderGallery();
+        updateStats();
+        showProgress('video', false);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+}
+
+function showProgress(type, show) {
+  const bar = document.getElementById(type + '-progress');
+  bar.style.display = show ? 'block' : 'none';
+  if (show) {
+    bar.querySelector('.progress-fill').style.width = '0%';
+    setTimeout(() => bar.querySelector('.progress-fill').style.width = '100%', 50);
+  }
+}
+
+/* ── Drag & Drop ── */
+['photo-zone', 'video-zone'].forEach(zoneId => {
+  const zone = document.getElementById(zoneId);
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const inputId = zoneId === 'photo-zone' ? 'photo-input' : 'video-input';
+    const input = document.getElementById(inputId);
+    const dt = e.dataTransfer;
+    if (dt.files.length) {
+      const synthetic = { target: { files: dt.files, value: '' } };
+      if (zoneId === 'photo-zone') handlePhotoUpload(synthetic);
+      else handleVideoUpload(synthetic);
+    }
+  });
+});
+
+/* ── Filter & Search ── */
+function filterMedia(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-chips .chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderGallery();
+}
+
+function searchMedia(q) {
+  currentSearch = q.toLowerCase();
+  renderGallery();
+}
+
+function getFilteredMedia() {
+  return mediaItems.filter(item => {
+    const typeMatch = currentFilter === 'all' || item.type === currentFilter;
+    const searchMatch = !currentSearch || item.location.toLowerCase().includes(currentSearch) || item.name.toLowerCase().includes(currentSearch) || item.note.toLowerCase().includes(currentSearch);
+    return typeMatch && searchMatch;
+  });
+}
+
+/* ── Render Gallery ── */
+function renderGallery() {
+  const grid = document.getElementById('gallery-grid');
+  const filtered = getFilteredMedia();
+  const empty = document.getElementById('empty-gallery');
+
+  // Remove existing cards (keep empty-state)
+  Array.from(grid.children).forEach(c => { if (!c.id) c.remove(); });
+
+  if (!filtered.length) {
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+
+  filtered.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'media-card';
+    card.style.animationDelay = (idx * 0.04) + 's';
+
+    const badge = `<span class="card-type-badge">${item.type === 'photo' ? '📷 Photo' : '🎬 Video'}</span>`;
+
+    const overlay = `
+      <div class="card-overlay">
+        <div class="card-meta">
+          <div class="card-place">${item.location || item.name}</div>
+          <div class="card-date">${item.date || ''}</div>
+        </div>
+      </div>
+    `;
+
+    const actions = `
+      <div class="card-actions">
+        <button class="icon-btn" onclick="editMedia(event, '${item.id}')" title="Edit info">✏️</button>
+        <button class="icon-btn" onclick="deleteMedia(event, '${item.id}')" title="Delete">🗑️</button>
+      </div>
+    `;
+
+    if (item.type === 'photo') {
+      card.innerHTML = `
+        <img src="${item.src}" alt="${item.name}" loading="lazy">
+        ${badge}${overlay}${actions}
+      `;
+    } else {
+      card.innerHTML = `
+        <video src="${item.src}" preload="metadata" muted></video>
+        ${badge}${overlay}${actions}
+      `;
+    }
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.card-actions')) return;
+      openLightbox(item.id);
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+/* ── Render Trips ── */
+function renderTrips() {
+  const grid = document.getElementById('trips-grid');
+  const empty = document.getElementById('empty-trips');
+
+  Array.from(grid.children).forEach(c => { if (!c.id) c.remove(); });
+
+  if (!tripEntries.length) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  tripEntries.forEach(trip => {
+    const card = document.createElement('div');
+    card.className = 'trip-card';
+    const cover = trip.cover ? `<img src="${trip.cover}" alt="${trip.title}">` : `<div class="trip-cover-placeholder">✈️</div>`;
+    const mediaCount = mediaItems.filter(m => m.trip === trip.id).length;
+
+    card.innerHTML = `
+      <div class="trip-cover">${cover}</div>
+      <div class="trip-info">
+        <h3>${trip.title}</h3>
+        ${trip.location ? `<div class="trip-location">📍 ${trip.location}</div>` : ''}
+        ${trip.note ? `<p class="trip-note">${trip.note}</p>` : ''}
+        ${trip.mood ? `<span class="tag">${trip.mood}</span>` : ''}
+        <div class="trip-stats">
+          <span>📅 ${trip.date ? new Date(trip.date).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : 'No date'}</span>
+          <span style="margin-left:auto; cursor:pointer; color:var(--sienna);" onclick="deleteTrip('${trip.id}')">🗑 Delete</span>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+}
+
+/* ── Update stats ── */
+function updateStats() {
+  const photos = mediaItems.filter(m => m.type === 'photo').length;
+  const videos = mediaItems.filter(m => m.type === 'video').length;
+  const places = new Set([...mediaItems.map(m => m.location), ...tripEntries.map(t => t.location)].filter(Boolean)).size;
+  document.getElementById('stat-photos').textContent = photos;
+  document.getElementById('stat-videos').textContent = videos;
+  document.getElementById('stat-trips').textContent = tripEntries.length;
+  document.getElementById('stat-places').textContent = places;
+}
+
+/* ── Update Places ── */
+function updatePlaces() {
+  const list = document.getElementById('locations-list');
+  const places = [...new Set([...mediaItems.map(m => m.location), ...tripEntries.map(t => t.location)].filter(Boolean))];
+  list.innerHTML = '';
+
+  if (!places.length) {
+    list.innerHTML = '<div class="empty-state" style="grid-column:1/-1;padding:2rem;"><p>No places yet. Add trip entries with locations to see them here.</p></div>';
+    return;
+  }
+
+  places.forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'location-chip';
+    chip.innerHTML = `<div class="dot"></div><span>${p}</span>`;
+    list.appendChild(chip);
+  });
+}
+
+/* ── Lightbox ── */
+function openLightbox(id) {
+  const filtered = getFilteredMedia();
+  lightboxIndex = filtered.findIndex(m => m.id == id);
+  renderLightbox(filtered[lightboxIndex]);
+  document.getElementById('lightbox').classList.add('open');
+  document.addEventListener('keydown', handleLightboxKey);
+}
+
+function renderLightbox(item) {
+  const lbMedia = document.getElementById('lb-media');
+  if (item.type === 'photo') {
+    lbMedia.innerHTML = `<img src="${item.src}" alt="${item.name}">`;
+  } else {
+    lbMedia.innerHTML = `<video src="${item.src}" controls autoplay style="max-width:70vw;max-height:80vh;border-radius:10px;"></video>`;
+  }
+  document.getElementById('lb-title').textContent = item.name;
+  document.getElementById('lb-location').textContent = item.location ? '📍 ' + item.location : '';
+  document.getElementById('lb-date').textContent = item.date || '';
+  document.getElementById('lb-note').textContent = item.note || '';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lb-media').innerHTML = '';
+  document.removeEventListener('keydown', handleLightboxKey);
+}
+
+function closeLightboxOutside(e) {
+  if (e.target === document.getElementById('lightbox')) closeLightbox();
+}
+
+function navLightbox(dir) {
+  const filtered = getFilteredMedia();
+  lightboxIndex = (lightboxIndex + dir + filtered.length) % filtered.length;
+  renderLightbox(filtered[lightboxIndex]);
+}
+
+function handleLightboxKey(e) {
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowRight') navLightbox(1);
+  if (e.key === 'ArrowLeft') navLightbox(-1);
+}
+
+/* ── Edit media info ── */
+function editMedia(event, id) {
+  event.stopPropagation();
+  const item = mediaItems.find(m => m.id == id);
+  if (!item) return;
+
+  const location = prompt('Location / Place:', item.location || '');
+  if (location !== null) item.location = location;
+
+  const note = prompt('Note / Caption:', item.note || '');
+  if (note !== null) item.note = note;
+
+  save();
+  renderGallery();
+  updateStats();
+  updatePlaces();
+}
+
+/* ── Delete media ── */
+function deleteMedia(event, id) {
+  event.stopPropagation();
+  if (!confirm('Delete this item?')) return;
+  mediaItems = mediaItems.filter(m => m.id != id);
+  save();
+  renderGallery();
+  updateStats();
+}
+
+/* ── Delete trip ── */
+function deleteTrip(id) {
+  if (!confirm('Delete this trip entry?')) return;
+  tripEntries = tripEntries.filter(t => t.id != id);
+  save();
+  renderTrips();
+  updateStats();
+  updatePlaces();
+}
+
+/* ── Column toggle ── */
+function setColumns(n, btn) {
+  const grid = document.getElementById('gallery-grid');
+  grid.className = 'gallery-grid';
+  if (n === 2) grid.classList.add('two-col');
+  if (n === 1) grid.classList.add('one-col');
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ── Init ── */
+renderGallery();
+renderTrips();
+updateStats();
+updatePlaces();
+</script>
+</body>
+</html>
